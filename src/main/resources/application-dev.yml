@@ -1,0 +1,17 @@
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://10.10.7.193:8761/eureka
+spring:
+  redis:
+    host: 10.10.3.125
+    port: 6379
+    password: Iyouqu123
+    database: 0
+    jedis:
+      pool:
+        max-wait: 3000
+        min-idle: 50
+        max-idle: 1000
+        max-active: 2000
+    timeout: 5000

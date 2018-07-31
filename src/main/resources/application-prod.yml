@@ -1,0 +1,17 @@
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://10.10.80.59:8090/eureka,http://10.10.80.61:8090/eureka,http://10.10.80.62:8090/eureka
+spring:
+  redis:
+    host: r-wz966b6b3c37c134.redis.rds.aliyuncs.com
+    port: 6379
+    password: 75jLntoikPEzwDmURe80yXb9VhsAIJ
+    database: 0
+    jedis:
+      pool:
+        max-wait: 3000
+        min-idle: 50
+        max-idle: 1000
+        max-active: 2000
+    timeout: 5000

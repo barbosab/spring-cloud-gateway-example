@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: gateway1
+  cloud:
+    gateway:
+      httpclient:
+        pool:
+          acquire-timeout: 6000
+          max-connections: 10000
+        connect-timeout: 60000
+      discovery:
+        locator:
+          enabled: true
+  profiles:
+    active: prod
+server:
+  port: 8080
+#  ssl:
+#    key-store: classpath:springboot.jks
+#    key-password: springboot
+#    key-store-type: JKS
+#    key-alias: 1
+  compression:
+    enabled: false
+    mime-types:
+      - application/x-gzip
+      - text/html
+      - application/json
+    min-response-size: 100
+  connection-timeout: 20s
+  max-http-header-size: 200000
+eureka:
+  client:
+    registry-fetch-interval-seconds: 30
+  instance:
+    prefer-ip-address: true
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 60000
+logging:
+  level:
+    org.springframework.cloud.gateway: info

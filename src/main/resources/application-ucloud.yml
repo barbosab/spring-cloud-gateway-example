@@ -1,0 +1,17 @@
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://172.16.200.148:8090/eureka,http://172.16.200.5:8090/eureka
+spring:
+  redis:
+    host: 172.16.200.138
+    port: 6379
+    password: xY7rttqwbVGt0XlHsMkhj0ZQGw
+    database: 0
+    jedis:
+      pool:
+        max-wait: 3000
+        min-idle: 50
+        max-idle: 1000
+        max-active: 2000
+    timeout: 5000
