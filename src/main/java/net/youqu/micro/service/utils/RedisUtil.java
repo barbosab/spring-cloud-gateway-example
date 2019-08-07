@@ -56,7 +56,7 @@ public class RedisUtil {
         logger.debug("返回值为null，缓存空值,key={},time={},timeUnit={}", key, time, timeUnit);
         stringOperations.set(key, "", time, timeUnit);
         logger.debug("空值写入成功,key={}", key);
-        stopWatch.lap("redis.writeEmpty");
+        stopWatch.stop("redis.writeEmpty");
     }
 
     /**
@@ -72,7 +72,7 @@ public class RedisUtil {
         logger.debug("写入缓存,key={},value={},time={},timeUnit={}", key, value, time, timeUnit);
         stringOperations.set(key, value, time, timeUnit);
         logger.debug("缓存写入成功,key={}", key);
-        stopWatch.lap("redis.writeCache");
+        stopWatch.stop("redis.writeCache");
     }
 
     /**
@@ -83,7 +83,7 @@ public class RedisUtil {
     public String getValue(String key) {
         StopWatch stopWatch = new Slf4JStopWatch(cacheLogger);
         String value = stringOperations.get(key);
-        stopWatch.lap("redis.getValue");
+        stopWatch.stop("redis.getValue");
         return value;
     }
 
@@ -99,12 +99,12 @@ public class RedisUtil {
         Map<String, ?> mappedHash = null;
         try {
             mappedHash = ObjectUtil.convertBean(value);
-            stopWatch.lap("redis.writeHash.convertHashToMap");
+            stopWatch.stop("redis.writeHash.convertHashToMap");
         } catch (Exception e) {
-            e.printStackTrace();
+            stopWatch.stop("redis.writeHash");
         }
         hashOperations.putAll(key, mappedHash);
-        stopWatch.lap("redis.writeHash");
+        stopWatch.stop("redis.writeHash");
     }
 
     /**
@@ -120,7 +120,7 @@ public class RedisUtil {
         hashOperations.put(key, EMPTY_VALUE, EMPTY_VALUE);
         this.setHashExpireTime(key, time, timeUnit);
         logger.debug("空值写入成功,key={}", key);
-        stopWatch.lap("redis.writeHashEmpty");
+        stopWatch.stop("redis.writeHashEmpty");
     }
 
     /**
@@ -142,9 +142,9 @@ public class RedisUtil {
             obj = ObjectUtil.convertMap(beanClass, loadedHash);
             stopWatch.lap("redis.loadHash.convertHashToObject");
         } catch (Exception e) {
-            e.printStackTrace();
+            stopWatch.stop("redis.loadHash");
         }
-        stopWatch.lap("redis.loadHash");
+        stopWatch.stop("redis.loadHash");
         return (T) obj;
     }
 
@@ -159,7 +159,7 @@ public class RedisUtil {
     public Boolean setHashExpireTime(String key, long timeOut, TimeUnit timeUnit) {
         StopWatch stopWatch = new Slf4JStopWatch(cacheLogger);
         Boolean result = redisTemplate.boundHashOps(key).expire(timeOut, timeUnit);
-        stopWatch.lap("redis.setHashExpireTime");
+        stopWatch.stop("redis.setHashExpireTime");
         return result;
     }
 
@@ -176,7 +176,7 @@ public class RedisUtil {
         if (!CollectionUtils.isEmpty(value)) {
             return listOperations.leftPushAll(key, value);
         }
-        stopWatch.lap("redis.writeList");
+        stopWatch.stop("redis.writeList");
         return 0L;
     }
 
@@ -190,7 +190,7 @@ public class RedisUtil {
     public List loadList(String key, long start, long end) {
         StopWatch stopWatch = new Slf4JStopWatch(cacheLogger);
         List list = listOperations.range(key, start, end);
-        stopWatch.lap("redis.loadList");
+        stopWatch.stop("redis.loadList");
         return list;
     }
 
@@ -204,7 +204,7 @@ public class RedisUtil {
         StopWatch stopWatch = new Slf4JStopWatch(cacheLogger);
         Long size = listOperations.size(key);
         List list = listOperations.range(key, 0, size);
-        stopWatch.lap("redis.loadListAll");
+        stopWatch.stop("redis.loadListAll");
         return list;
     }
 
@@ -219,7 +219,7 @@ public class RedisUtil {
     public Boolean setListExpireTime(String key, int timeOut, TimeUnit timeUnit) {
         StopWatch stopWatch = new Slf4JStopWatch(cacheLogger);
         Boolean result = redisTemplate.boundListOps(key).expire(timeOut, timeUnit);
-        stopWatch.lap("redis.setListExpireTime");
+        stopWatch.stop("redis.setListExpireTime");
         return result;
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <property name="LOG_PATH" value="/data/logs/gateway/"/>
+    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} [%L]- %msg%n</pattern>
@@ -38,8 +38,8 @@
     <appender name="info" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_PATH}/gateway_info.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH}/gateway_info.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>7</maxHistory>
+            <fileNamePattern>${LOG_PATH}/info/gateway_info.%d{yyyy-MM-dd-HH}.log</fileNamePattern>
+            <maxHistory>10</maxHistory>
         </rollingPolicy>
         <encoder>
             <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} [%L]- %msg%n</pattern>
@@ -57,12 +57,51 @@
             <charset>UTF-8</charset>
         </encoder>
     </appender>
+    <!-- watchDog -->
+    <appender name="gatewayAppender" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_PATH}/gateway-perf.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%m%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="gatewayPerfTime" class="org.perf4j.logback.AsyncCoalescingStatisticsAppender">
+        <!--
+             TimeSlice配置多少时间间隔去做一次汇总写入文件中
+             默认值是 30000 ms
+        -->
+        <param name="timeSlice" value="10000"/>
+        <appender-ref ref="gatewayAppender"/>
+    </appender>
+    <logger name="gatewayLogger" level="INFO" additivity="false">
+        <appender-ref ref="gatewayPerfTime"/>
+    </logger>
+    <appender name="aliyun" class="net.youqu.log.appender.StaLoghubAppender">
+        <!--必选项-->
+        <!-- 账号及网络配置 -->
+        <endpoint>cn-shenzhen.log.aliyuncs.com</endpoint>
+        <accessKeyId>LTAIVJbyr5GM7lzC</accessKeyId>
+        <accessKey>l5VCk5t8s1tKvAWfZUWZk5PsScPyDa</accessKey>
+        <!-- sls 项目配置 -->
+        <projectName>datastatistics-nrz</projectName>
+        <logstore>gateway</logstore>
+        <!--必选项 (end)-->
+        <packageTimeoutInMS>5000</packageTimeoutInMS>
+        <logsCountPerPackage>10</logsCountPerPackage>
+        <logsBytesPerPackage>3145728</logsBytesPerPackage>
+        <memPoolSizeInByte>104857600</memPoolSizeInByte>
+        <retryTimes>3</retryTimes>
+        <maxIOThreadSizeInPool>8</maxIOThreadSizeInPool>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>info</level>
+        </filter>
+    </appender>
 
-
-    <root level="info">
+    <root level="warn">
         <appender-ref ref="console"/>
         <appender-ref ref="info"/>
+        <appender-ref ref="warn"/>
         <appender-ref ref="error"/>
+        <appender-ref ref="aliyun"/>
     </root>
 
 </configuration>

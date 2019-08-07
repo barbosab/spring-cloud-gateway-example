@@ -1,7 +1,7 @@
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://172.16.200.148:8090/eureka,http://172.16.200.5:8090/eureka
+      defaultZone: http://172.16.200.148:8090/eureka,http://172.16.200.5:8090/eureka,http://172.16.200.35:8090/eureka
 spring:
   redis:
     host: 172.16.200.138

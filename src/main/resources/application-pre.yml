@@ -1,12 +1,12 @@
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://10.80.122.213:8761/eureka
+      defaultZone: http://10.80.122.103:8761/eureka
 spring:
   redis:
-    host: 10.80.122.202
+    host: r-wz966b6b3c37c134.redis.rds.aliyuncs.com
     port: 6379
-    password: Iyouqu123
+    password: 75jLntoikPEzwDmURe80yXb9VhsAIJ
     database: 0
     jedis:
       pool:

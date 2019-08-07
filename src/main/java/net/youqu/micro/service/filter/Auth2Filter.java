@@ -34,7 +34,7 @@ import java.util.TreeMap;
  * @date 2018/06/06
  */
 @Component
-public class AuthFilter implements GatewayFilter, Ordered {
+public class Auth2Filter implements GatewayFilter, Ordered {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private RedisUtil redisUtil;
@@ -58,7 +58,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
                 //没有验签参数
                 result.setCode(ResultCodeEnum.SGIN_EMPTY.getCode());
                 result.setMsg(ResultCodeEnum.SGIN_EMPTY.getMsg());
-                return exchange.getResponse().writeWith(Mono.just(this.getBodyBuffer(exchange.getResponse(), result)));
+                return exchange.getResponse().writeWith(Flux.just(this.getBodyBuffer(exchange.getResponse(), result)));
             }
             String publicKey = exchange.getRequest().getHeaders().getFirst("publicKey");
             if (StringUtils.isBlank(publicKey)) {
@@ -67,7 +67,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
                     //没有公钥
                     result.setCode(ResultCodeEnum.PUBLICKEY_EMPTY.getCode());
                     result.setMsg(ResultCodeEnum.PUBLICKEY_EMPTY.getMsg());
-                    return exchange.getResponse().writeWith(Mono.just(this.getBodyBuffer(exchange.getResponse(), result)));
+                    return exchange.getResponse().writeWith(Flux.just(this.getBodyBuffer(exchange.getResponse(), result)));
                 }
             }
             String privateKey = redisUtil.getValue(publicKey);
@@ -87,11 +87,11 @@ public class AuthFilter implements GatewayFilter, Ordered {
                 sb.append("privateKey=");
                 sb.append(privateKey);
                 String urlString = sb.toString();
-//                try {
-//                    urlString = URLEncoder.encode(sb.toString(), "UTF-8");
-//                } catch (UnsupportedEncodingException e) {
-//                    logger.error("url encode fail");
-//                }
+                try {
+                    urlString = URLEncoder.encode(sb.toString(), "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    logger.error("url encode fail");
+                }
                 logger.info(urlString);
                 String serverSign = DigestUtils.md5Hex(urlString);
                 logger.info(serverSign);
@@ -99,13 +99,13 @@ public class AuthFilter implements GatewayFilter, Ordered {
                     //验签不通过
                     result.setCode(ResultCodeEnum.SIGN_INVALID.getCode());
                     result.setMsg(ResultCodeEnum.SIGN_INVALID.getMsg());
-                    return exchange.getResponse().writeWith(Mono.just(this.getBodyBuffer(exchange.getResponse(), result)));
+                    return exchange.getResponse().writeWith(Flux.just(this.getBodyBuffer(exchange.getResponse(), result)));
                 }
             } else {
                 //私钥过期
                 result.setCode(ResultCodeEnum.PRIVATEKEY_EXPIRE.getCode());
                 result.setMsg(ResultCodeEnum.PRIVATEKEY_EXPIRE.getMsg());
-                return exchange.getResponse().writeWith(Mono.just(this.getBodyBuffer(exchange.getResponse(), result)));
+                return exchange.getResponse().writeWith(Flux.just(this.getBodyBuffer(exchange.getResponse(), result)));
             }
         }
         return chain.filter(exchange);

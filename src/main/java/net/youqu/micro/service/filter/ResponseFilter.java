@@ -1,8 +1,14 @@
 package net.youqu.micro.service.filter;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.ValueFilter;
-import org.apache.commons.lang.StringUtils;
+import net.youqu.micro.service.utils.IpUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.perf4j.StopWatch;
+import org.perf4j.slf4j.Slf4JStopWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -26,15 +32,21 @@ import java.util.concurrent.CompletableFuture;
 public class ResponseFilter implements GlobalFilter, Ordered {
     @Value("${spring.profiles.active}")
     private String profile;
+    private final static String YUEWEN = "yw";
+    private final static String SUBTRACT = "sub";
 
-//    private final static Logger loggerKafka = LoggerFactory.getLogger(net.youqu.kafka.log.appender.KafkaLogAppender.class);
+    private final Logger gatewayLogger = LoggerFactory.getLogger("gatewayLogger");
 
     @Override
     public Mono<Void> filter(ServerWebExchange serverWebExchange, GatewayFilterChain gatewayFilterChain) {
         serverWebExchange.getAttributes().put("start_time", System.currentTimeMillis());
+        String url = serverWebExchange.getRequest().getURI().getPath();
+        gatewayLogger.info(serverWebExchange.getRequest().getURI().getPath() + "?" + serverWebExchange.getRequest().getURI().getQuery());
+        StopWatch stopWatch = new Slf4JStopWatch(gatewayLogger);
         return gatewayFilterChain.filter(serverWebExchange).then(
                 Mono.fromRunnable(() -> {
-                    this.logCollect(serverWebExchange);
+                    stopWatch.stop(url);
+//                    this.logCollect(serverWebExchange);
                 })
         );
     }
@@ -50,10 +62,11 @@ public class ResponseFilter implements GlobalFilter, Ordered {
         CompletableFuture.runAsync(() -> {
             long startTime = Long.valueOf(String.valueOf(serverWebExchange.getAttributes().get("start_time")));
             long consumeTime = System.currentTimeMillis() - startTime;
+            String externalType = response.getHeaders().getFirst("external_type");
             JSONObject data = new JSONObject() {{
                 //kafka参数
-                put("topic", "cp_linked_up");
-                put("table_name", "cp_linked_up");
+                put("topic", "dl.dl_01_04_01_abyss_yw_log_linked_up");
+                put("table_name", "dl_01_04_01_abyss_yw_log_linked_up");
                 //网关层参数
                 put("request_id", UUID.randomUUID().toString());
                 put("uri", request.getURI().getPath());
@@ -64,7 +77,7 @@ public class ResponseFilter implements GlobalFilter, Ordered {
                 }
                 put("request_method", request.getMethodValue());
                 put("request_host", request.getRemoteAddress().getHostString());
-                put("request_remote_addr", request.getRemoteAddress().getAddress().getHostAddress());
+                put("request_remote_addr", IpUtil.getRemoteHost(request));
                 put("request_remote_user", request.getURI().getRawUserInfo());
                 put("request_protocol", request.getURI().getScheme());
                 put("request_status", response.getStatusCode().value());
@@ -75,7 +88,7 @@ public class ResponseFilter implements GlobalFilter, Ordered {
                 put("start_time", startTime);
                 put("log_time", System.currentTimeMillis());
                 //第三方参数
-                put("external_type", response.getHeaders().getFirst("external_type"));
+                put("external_type", externalType);
                 put("external_uri", response.getHeaders().getFirst("external_uri"));
                 put("external_request_uri", response.getHeaders().getFirst("external_request_uri"));
                 put("external_request_time", response.getHeaders().getFirst("external_request_time"));
@@ -95,8 +108,8 @@ public class ResponseFilter implements GlobalFilter, Ordered {
                 put("bookSourceId", request.getQueryParams().getFirst("book_source_id"));
                 put("bookId", request.getQueryParams().getFirst("book_id"));
             }};
-            if (StringUtils.equalsIgnoreCase("prod", profile)) {
-//                loggerKafka.info(JSON.toJSONString(data, filter));
+            if (StringUtils.equalsIgnoreCase(YUEWEN, externalType) || StringUtils.equalsIgnoreCase(SUBTRACT, externalType)) {
+//                logger.info(JSON.toJSONString(data, filter));
             }
         });
     }
